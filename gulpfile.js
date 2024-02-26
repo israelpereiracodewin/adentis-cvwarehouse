@@ -16,7 +16,7 @@ const watchedJSFiles = [
 ];
 
 const buildMinJS = () => src(watchedJSFiles)
-      .pipe(babel(babelConfig))
+     // .pipe(babel(babelConfig))
       .pipe(uglify())
       .pipe(rename({ suffix: '.min' })) 
       .pipe(dest("./js/bundles"))

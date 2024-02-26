@@ -437,6 +437,7 @@ background:rgba(217, 232, 27, 1)
             </div>
             <div fs-cmsfilter-element="filters" class="filtro_wrap is-joblist w-form">
               <form method="get" name="email-form"
+                data-jl-form
                data-name="Email Form" style="opacity:0"
                 data-w-id="4bcbd552-0915-6b5e-d61f-93d4791dac06" 
                 id="email-form" class="filter_input-wrap"
@@ -444,20 +445,22 @@ background:rgba(217, 232, 27, 1)
                  data-wf-element-id="4bcbd552-0915-6b5e-d61f-93d4791dac06">
                 <div class="w-layout-hflex filter_inputs-wrap is-career">
                   <input class="input_light pesquisa career w-input" maxlength="256" name="name" fs-cmsfilter-field="name, categories"
-                   data-name="Name" placeholder="Search jobs" type="text" id="name">
-                   <input type="hidden" id="search-page" value="1">
+                   data-name="Name" data-jl-form-search placeholder="Search jobs" type="text" id="name">
+                   
+                   <input type="hidden" id="search-page" data-jl-form-page  value="1">
                   <div class="w-layout-hflex filter-wrap is-joblist">
                     <div class="cw-control">
-                      <select id="search-location">
+                      <select id="search-location" data-jl-form-location>
                         <option value="">Select the location</option>
                       </select>
                     </div>
                     <div class="cw-control">
-                      <select id="search-type-of-work">
+                      <select id="search-type-of-work" data-jl-form-typeWork>
                         <option value="">Select the type Work</option>
                       </select>
                     </div>
-                    <a fs-cmsfilter-element="reset" href="#" class="reset is-light is-right w-inline-block" id="btn-reset"><svg class="icon-1x1-xsmall" xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 24 24" fill="none">
+                    <a fs-cmsfilter-element="reset" href="#" class="reset is-light is-right w-inline-block"
+                    data-jl-form-reset id="btn-reset"><svg class="icon-1x1-xsmall" xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 24 24" fill="none">
                         <path d="M14.89 5.0799C14.02 4.8199 13.06 4.6499 12 4.6499C7.20996 4.6499 3.32996 8.5299 3.32996 13.3199C3.32996 18.1199 7.20996 21.9999 12 21.9999C16.79 21.9999 20.67 18.1199 20.67 13.3299C20.67 11.5499 20.13 9.8899 19.21 8.5099" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         <path d="M16.13 5.32L13.24 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         <path d="M16.13 5.32007L12.76 7.78007" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -494,7 +497,7 @@ color:white;
 }
 </style>
                 </div>
-                <div class="w-layout-grid content_grid" id="job-list-results">
+                <div class="w-layout-grid content_grid" data-jl-list>
                   <a href="job-description.html" class="job-card_wrap w-inline-block">
                     <h3 class="heading-style-h4">Developer JavaScript (Backend e Frontend)</h3>
                     <div class="w-layout-hflex job-group">
@@ -540,7 +543,7 @@ color:white;
                     </a>
                   </div>
                 </div>
-                <div class="w-layout-hflex filter_pagination-wrap" id="pagination-wrap">
+                <div class="w-layout-hflex filter_pagination-wrap" data-jl-pagination id="pagination-wrap">
                   <button class="filter_pagination is-prev" type="button" title="anterior">
                     prev
                   </button>

@@ -2,7 +2,7 @@
 
 (function(){
 
-    const API_URL_JOBS_CVWAREHOUSE = '/jobs.json';//'https://bypass.decode.pt/raw?url=https://api.cvwarehouse.com/cvwJobsApiAdentis/d1c941c4-a446-47ce-90e6-2c5ca3fb13de/Job/own_website/JSON1_15';
+    const API_URL_JOBS_CVWAREHOUSE = 'https://api.cvwarehouse.com/cvwJobsApiNearU/f1999e48-cee5-4f55-984e-1f26a6f0cf55/Job/own_website/JSON1_16'
 
     const JOB_WRAP = 'jobdescription-wrap';
 
@@ -38,18 +38,18 @@
 
             titleElem.innerText = foundJob?.name?.value;
 
-            !foundJob?.remoteWorkOption && (remoteElem?.remove());      
+            remoteElem.innerText = foundJob?.remoteWorkOption || 'Presencial'
 
             localElem.innerText = foundJob?.place?.regions?.map(j => j.name)?.join(',');
 
             descElem.innerHTML = foundJob.description.value;
 
             btnApply.target = '_blank';
-            btnApply.href  = `https://jobpage.cvwarehouse.com/ApplicationForm/AppForm?job=${jobId}&companyGuid=6ad00e65-ec33-4e2e-a3e7-2feea05a5923&channel=own_website&lang=en-US`
+            btnApply.href  = `https://jobpage.cvwarehouse.com/ApplicationForm/AppForm?job=${jobId}&companyGuid=ba77d654-87d2-4396-8c64-b79de977a2ea&channel=own_website&lang=en-US`
 
         }catch(_){
 
-            window.location.href = 'job-list.html';
+            window.location.href = 'job-list';
         }
     }   
 
@@ -57,7 +57,7 @@
         
         const urlParams = new URLSearchParams(window.location.search)
 
-        jobDescription(document.querySelector(`.${JOB_WRAP}`), urlParams.get('job'));
+        jobDescription(document.querySelector(`#${JOB_WRAP}`), urlParams.get('job'));
     }
 
     const bootstrap = () => {

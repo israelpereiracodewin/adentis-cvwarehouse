@@ -2,16 +2,19 @@
 
 (function(){
 
-    const FORM_SEARCH_ID = 'email-form',
-        INPUT_SEARCH = 'name',
-        INPUT_LOCATION = 'search-location',
-        INPUT_TYPEWORK = 'search-type-of-work',
-        INPUT_PAGE = 'search-page',
+    const apiCV = 'https://api.cvwarehouse.com/cvwJobsApiNearU/f1999e48-cee5-4f55-984e-1f26a6f0cf55/Job/own_website/JSON1_16';
+    
+    const FORM_SEARCH = 'form-search',
+        INPUT_SEARCH = 'id_search',
+        INPUT_LOCATION = 'location',
+        INPUT_TYPEWORK = 'worktype',
+        INPUT_PAGE = 'page',
         BTN_RESET = 'btn-reset',
-        JOB_LIST = 'job-list-results',
-        PAGINATION_WRAP = 'pagination-wrap';
+        JOB_LIST = 'job-list',
+        PAGINATION_WRAP = 'pagination-wrap',
+        onSiteOption = 'On-site Work';
 
-    const API_URL_JOBS_CVWAREHOUSE = '/jobs.json';//'https://bypass.decode.pt/raw?url=https://api.cvwarehouse.com/cvwJobsApiAdentis/d1c941c4-a446-47ce-90e6-2c5ca3fb13de/Job/own_website/JSON1_15';
+    const API_URL_JOBS_CVWAREHOUSE = apiCV;
 
     const $get = (url, payload = {}) => {
 
@@ -29,6 +32,18 @@
     const uniqueArray = (value, index, self) => self.indexOf(value) === index && !!value;
     
     const insertAfter = (referer, newNode) => referer.parentNode.insertBefore(newNode, referer.nextSibling);
+
+    const formatDate = date => {
+
+        let data = new Date(date);
+        let dia = data.getDate().toString().padStart(2, '0');
+        let mes = (data.getMonth() + 1).toString().padStart(2, '0'); // Os meses começam do 0 em JavaScript
+        let ano = data.getFullYear();
+
+        let dataFormatada = `${dia}/${mes}/${ano}`;
+
+       return dataFormatada;
+    }
 
     const getSearchParams = () => {
 
@@ -96,7 +111,7 @@
         locationElem.addEventListener('change', onChange)
         typeWorkElem.addEventListener('change', onChange)
 
-        btnReset.addEventListener('click', () => {
+        btnReset?.addEventListener('click', () => {
 
             [ searchElem, locationElem, typeWorkElem ]
                 .forEach(i => i.value = '');
@@ -118,6 +133,8 @@
         }
 
         let handler = null; changePage = null;
+
+        pageElem.value = 1;
 
         return {
             queryParams,
@@ -145,42 +162,47 @@
 
         let jobs = [];
      
-        const itemElemOriginal = jobListElem.querySelector('.job-card_wrap'),
+        const itemElemOriginal = jobListElem.querySelector('[data-job-card]').cloneNode(true),
               itemNotFound     = jobListElem.querySelector('.filter_empty');
             
-        itemNotFound.remove();
+        itemNotFound?.remove();
 
-        const createItemElement = (job) => {
+        const createItemElement = job => {
 
             const cloneNode = itemElemOriginal.cloneNode(true);
 
-            cloneNode.querySelector('.heading-style-h4').innerText = job?.internalName;
+            cloneNode.querySelector('[data-card-title]').innerText = job?.internalName;
 
-            !job?.remoteWorkOption && (cloneNode.querySelector('.is-job')?.remove());      
+            cloneNode.querySelector('[data-card-is-job]').innerText = job?.remoteWorkOption?.name || onSiteOption;
             
-            cloneNode.querySelector('.is-local').innerText = job?.place?.regions?.map(j => j.name)?.join(',');
+            cloneNode.querySelector('[data-card-local]').innerText = job?.place?.address?.city;
 
-            cloneNode.href  = `job-description.html?job=${job.id}`
-            cloneNode.title = job?.internalName;
+            cloneNode.querySelector('[data-card-country]').innerText = job?.place?.country?.name;
+
+            cloneNode.querySelector('[data-card-date]').innerText = formatDate(job.creationDate);
+
+            const anchor = cloneNode.querySelector('[data-card-btn-detail]');
+
+            anchor.href  = `job-description?job=${job.id}`
+            anchor.title = job?.internalName;
 
             return cloneNode;
         }
 
-        const render = jobs => {
+        const render = (jobs, numTotal) => {
 
             jobListElem.innerHTML = '';
-
-            if(!jobs.length) 
-                jobListElem.append(itemNotFound);
-            else 
-                jobs.forEach(job => jobListElem.append(createItemElement(job)));            
+             
+            jobs.forEach(job => jobListElem.append(createItemElement(job)));     
+            
+            document.getElementById('result-label').innerText = `${numTotal} `;
         }
 
         const search = params => {
 
             return jobs
-                .filter(job => !params.location || (!!params.location && job?.place?.country?.name === params.location))
-                .filter(job => !params.typeWork || (!!params.typeWork && job?.remoteWorkOption?.name === params.typeWork))
+                .filter(job => !params.location || (!!params.location && job?.place?.address?.city === params.location))
+                .filter(job => !params.typeWork || ((!!params.typeWork && job?.remoteWorkOption?.name === params.typeWork) || (params.typeWork === onSiteOption && !job?.remoteWorkOption)))
                 .filter(job => !params.q || (!!params.q && [
                     job?.place?.country?.name, 
                     job?.remoteWorkOption?.name,
@@ -203,10 +225,15 @@
                 
                 jobs = called
                     .sort((a, b) => new Date(b.publicationDate) - new Date(a.publicationDate))
-                    .filter(job => job?.description?.lang == "en-US");
-                    
-                formSearch.setLocationOptions(jobs.map(job => job?.place?.country?.name)?.filter(uniqueArray)?.reverse());
-                formSearch.setTypeWorkOptions(jobs.map(job => job?.remoteWorkOption?.name)?.filter(uniqueArray)?.reverse())
+                    //.filter(job => job?.description?.lang == "en-US");
+                
+                let workOptions = jobs.map(job => job?.remoteWorkOption?.name)?.filter(uniqueArray)?.reverse();
+
+                if(jobs.some(job => job?.remoteWorkOption === null))
+                    workOptions.push(onSiteOption);
+
+                formSearch.setLocationOptions(jobs.map(job => job?.place?.address?.city)?.filter(uniqueArray)?.reverse());
+                formSearch.setTypeWorkOptions(workOptions)
 
             }catch(_){
 
@@ -225,16 +252,17 @@
 
     const createPagination = ({
         rootElem, 
-        perPage = 10, 
+        perPage,
         formSearch
     }) => {
          
-        const btnPrev = rootElem.querySelector('.is-prev'),
-              btnNext = rootElem.querySelector('.is-next');
+        const btnPrev = rootElem.querySelector('#btn-prev'),
+              btnNext = rootElem.querySelector('#btn-next');
             
         const btnsApi = []; let arrayPages = [];
         
-        const btnStyleClass = 'filter_pagination-number';
+        const btnStyleClass = 'filter_pagination-number',
+              btnActiveStyleClass = 'filter_pagination-number--active';
        
         let jobs = [];
 
@@ -245,12 +273,6 @@
             rootElem.querySelectorAll(`.${btnStyleClass}`).forEach(a => a.remove());
         }
 
-        const setPage = currentPage => {
-
-            formSearch.setPage(currentPage);
-            renderBtns(currentPage);
-        }
-
         const createBtnPage = page => {
 
             const btn = document.createElement('button');
@@ -258,7 +280,11 @@
             const label = page < 0 ? '...' : page;
 
             btn.title = label;
+            btn.type = 'button';
             btn.classList.add(btnStyleClass);
+
+            formSearch.currentPage() === page && (btn.classList.add(btnActiveStyleClass));
+
             btn.innerHTML = `<div>${label}</div>`;
 
             const onClick = () => {
@@ -270,7 +296,7 @@
                 else if(page === -2)
                     currentPage = arrayPages[(arrayPages.indexOf(page)+1)]-1;
 
-                setPage(currentPage)
+                setPage(currentPage);
             }
 
             btn.addEventListener('click', onClick);
@@ -326,6 +352,12 @@
                 prevElem = btnPagination.elem;
             })
         }
+        
+        const setPage = currentPage => {
+
+            formSearch.setPage(currentPage);
+            renderBtns(currentPage);
+        }
 
         btnPrev.addEventListener('click', () => {
 
@@ -352,15 +384,16 @@
             renderBtns,
             perPage,
             paginate,
+            getJobs : () => jobs,
             setJobs : j => jobs = j
         }
     }
     
     const registerJobList = async () => {
 
-        const formElem       = document.getElementById(FORM_SEARCH_ID),
-              jobListElem    = document.getElementById(JOB_LIST),
-              paginationWrap = document.getElementById(PAGINATION_WRAP);
+        const formElem       = document.querySelector(`#${FORM_SEARCH}`),
+              jobListElem    = document.querySelector(`#${JOB_LIST}`),
+              paginationWrap = document.querySelector(`#${PAGINATION_WRAP}`);
 
         const formSearch = createformSearch(formElem);
 
@@ -372,7 +405,8 @@
     
             const pagination = createPagination({
                 rootElem : paginationWrap, 
-                formSearch
+                formSearch,
+                perPage : 44444
             })           
 
             formSearch.setValueBySearchParams()
@@ -384,7 +418,7 @@
                 pagination.setJobs(searchJobs);
                 pagination.renderBtns(page);
 
-                jobList.render(pagination.paginate(page));
+                jobList.render(pagination.paginate(page), pagination.getJobs()?.length);
             })
 
             formSearch.change(() => formSearch.setPage(1))  
